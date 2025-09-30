@@ -1,0 +1,29 @@
+﻿<Window x:Class="SELENIUM_WPF.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:SELENIUM_WPF"
+        mc:Ignorable="d"
+        
+        
+        
+        Title="MainWindow" Height="450" Width="910">
+    <Grid x:Name="Main_W" HorizontalAlignment="Center" Width="910">
+        <TextBox x:Name="browse_TB" HorizontalAlignment="Left" Margin="85,134,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="432" Height="20"/>
+        <Button x:Name="browse_B" Content="Browse" HorizontalAlignment="Left" Margin="561,128,0,0" VerticalAlignment="Top" Width="96" Height="26"/>
+        <Label x:Name="clue_Patch_L" Content="Enter the patch to the APP" HorizontalAlignment="Left" Margin="226,129,0,0" VerticalAlignment="Top" Cursor="IBeam" Height="26" Foreground="{x:Static SystemColors.ActiveBorderBrush}" />
+        <Label x:Name="label1" Content="Status:" HorizontalAlignment="Left" Margin="85,23,0,0" VerticalAlignment="Top" FontSize="16"/>
+        <Label x:Name="status_L" Content="Status" HorizontalAlignment="Left" Margin="252,21,0,0" VerticalAlignment="Top" FontFamily="Times New Roman" FontSize="22" FontWeight="Bold" Foreground= "Fuchsia"/>
+        <Label x:Name="crash_L" Content="CRASH CODE:" HorizontalAlignment="Left" Margin="85,71,0,0" VerticalAlignment="Top" FontSize="16" Foreground= "Red" />
+        <Label x:Name="crash_Code_L" Content="34 69" HorizontalAlignment="Left" Margin="252,65,0,0" VerticalAlignment="Top" FontSize="22" FontWeight="Bold" Foreground= "Red" />
+        <Button x:Name="start_B" Content="Start APP" HorizontalAlignment="Left" Margin="446,243,0,0" VerticalAlignment="Top" Width="85"/>
+        <Label x:Name="error_APP_L" Content="ERROR" HorizontalAlignment="Left" Margin="85,177,0,0" VerticalAlignment="Top" Foreground= "Red" />
+
+        <!-- удалить в конце!!!! -->
+        <Button x:Name="stop_B" Content="Stop APP" HorizontalAlignment="Left" Margin="714,332,0,0" VerticalAlignment="Top" Width="68" Height="24" Click="Button1_Click" />
+        <Button x:Name="get_controls_B" Content="get controls" HorizontalAlignment="Left" Margin="286,356,0,0" VerticalAlignment="Top" Click="temp_B_Click"/>
+        <!-- удалить в конце!!!! -->
+
+    </Grid>
+</Window>
