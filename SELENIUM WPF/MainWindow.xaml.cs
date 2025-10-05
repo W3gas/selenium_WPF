@@ -170,7 +170,7 @@ namespace SELENIUM_WPF
 
 
         public int Time_Out_APP = 5000;  //  время на закрытие приложения (мc)
-        public int Time_Load_APP = 10000;  //  время на открытие приложения (мc)
+        public int Time_Load_APP = 3000;  //  время на открытие приложения (мc)
 
         public string Patch_APP = "";  //  путь к исполнительному файлу
 
@@ -180,7 +180,7 @@ namespace SELENIUM_WPF
 
 
         public string This_Window_Name = "second_Form";  //  окно для обработки и поиска
-        public string This_Control_Name = "open_Form_B";  // контрол для поиска и работы
+        public string This_Control_Name = "_TB";  // контрол для поиска и работы
 
 
 
@@ -203,12 +203,7 @@ namespace SELENIUM_WPF
             //******************************************
             GUI_Access.Main_W = this;
             //******************************************
-<<<<<<< HEAD
-            
-            
-=======
 
->>>>>>> refs/remotes/origin/master
 
             //  основной таймер запуск
             //******************************************
@@ -506,21 +501,35 @@ namespace SELENIUM_WPF
                 Main_Proc.Kill();
                 return;
             }
-            Activate_Main_Process_W(Main_Proc);
-            //Thread.Sleep(100);
-            DATE = new List<ElementRecord>();
-            DATE = UI_Scanner.SnapshotControls(Main_Root);
-            Clic_El = Find_By_Name(This_Control_Name);
+            //Activate_Main_Process_W(Main_Proc);
+                                                       //Thread.Sleep(100);
+            //DATE = new List<ElementRecord>();
+            //DATE = UI_Scanner.SnapshotControls(Main_Root);
+            //Clic_El = Find_By_Name(This_Control_Name);
 
 
-            Mouse_Emulator.MoveAndClick(Clic_El.CenterPoint.X, Clic_El.CenterPoint.Y);
+            //Mouse_Emulator.MoveAndClick(Clic_El.CenterPoint.X, Clic_El.CenterPoint.Y);
             Console.WriteLine();
 
             try
             {
-                DATE = new List<ElementRecord>();
-                Thread.Sleep(200);  //  возможно, стоит перекинуть внутрь функции активации главного окна
-                DATE = WindowUITool.CaptureWindowUI(Main_Proc, This_Window_Name);
+                Thread.Sleep(5000);
+
+                //Keyboard_Emulator.KeyCombination(Keyboard_Emulator.VK_MENU, Keyboard_Emulator.VK_F4);
+                //Keyboard_Emulator.TypeText("hello мир",60);
+                //Keyboard_Emulator.KeyPress(Keyboard_Emulator.VK_A); // Нажать клавишу A
+                //Thread.Sleep(3000);
+                Keyboard_Emulator.SwitchKeyboardLayout();
+
+                //Thread.Sleep(4000);
+                Keyboard_Emulator.KeyDown(Keyboard_Emulator.VK_SHIFT);
+                Keyboard_Emulator.KeyPress(Keyboard_Emulator.VK_A,60);
+                Keyboard_Emulator.KeyPress(Keyboard_Emulator.VK_A, 60);
+                Keyboard_Emulator.KeyUp(Keyboard_Emulator.VK_SHIFT);
+                Thread.Sleep(1000);
+                //DATE = new List<ElementRecord>();
+                //Thread.Sleep(200);  //  возможно, стоит перекинуть внутрь функции активации главного окна
+                //DATE = WindowUITool.CaptureWindowUI(Main_Proc, This_Window_Name);
                 Console.WriteLine();
             }
             catch

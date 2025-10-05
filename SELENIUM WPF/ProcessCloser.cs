@@ -206,7 +206,7 @@ namespace SELENIUM_WPF
                     return false;
                 }
 
-                // Отключаем свой обработчик, чтобы не поймать Ctrl+C сами
+                // Отключаем свой обработчик, чтобы не поймать Ctrl+C самим
                 SetConsoleCtrlHandler(null, true);
 
                 bool sent = GenerateConsoleCtrlEvent(CTRL_C_EVENT, 0);
