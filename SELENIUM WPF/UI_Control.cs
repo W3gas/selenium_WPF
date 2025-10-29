@@ -53,7 +53,7 @@ namespace SELENIUM_WPF
             Middle
         }
 
-        public static void MouseClick(MouseButton button)
+        public static void MouseClick(MouseButton button = MouseButton.Left)
         {
             uint downFlag = 0, upFlag = 0;
             switch (button)
@@ -82,6 +82,69 @@ namespace SELENIUM_WPF
 
             SendInput((uint)inputs.Length, inputs, Marshal.SizeOf(typeof(INPUT)));
         }
+
+
+
+
+        public static void MouseDown(MouseButton button = MouseButton.Left)
+        {
+            uint downFlag = 0, upFlag = 0;
+            switch (button)
+            {
+                case MouseButton.Left:
+                    downFlag = MOUSEEVENTF_LEFTDOWN;
+                    upFlag = MOUSEEVENTF_LEFTUP;
+                    break;
+                case MouseButton.Right:
+                    downFlag = MOUSEEVENTF_RIGHTDOWN;
+                    upFlag = MOUSEEVENTF_RIGHTUP;
+                    break;
+                case MouseButton.Middle:
+                    downFlag = MOUSEEVENTF_MIDDLEDOWN;
+                    upFlag = MOUSEEVENTF_MIDDLEUP;
+                    break;
+            }
+
+            INPUT[] inputs = new INPUT[1];
+            // Нажатие
+            inputs[0].type = INPUT_MOUSE;
+            inputs[0].mi.dwFlags = downFlag;
+            
+
+            SendInput((uint)inputs.Length, inputs, Marshal.SizeOf(typeof(INPUT)));
+        }
+
+
+
+        public static void MouseUp(MouseButton button = MouseButton.Left)
+        {
+            uint downFlag = 0, upFlag = 0;
+            switch (button)
+            {
+                case MouseButton.Left:
+                    downFlag = MOUSEEVENTF_LEFTDOWN;
+                    upFlag = MOUSEEVENTF_LEFTUP;
+                    break;
+                case MouseButton.Right:
+                    downFlag = MOUSEEVENTF_RIGHTDOWN;
+                    upFlag = MOUSEEVENTF_RIGHTUP;
+                    break;
+                case MouseButton.Middle:
+                    downFlag = MOUSEEVENTF_MIDDLEDOWN;
+                    upFlag = MOUSEEVENTF_MIDDLEUP;
+                    break;
+            }
+
+            INPUT[] inputs = new INPUT[1];
+            
+            // Отпускание
+            inputs[0].type = INPUT_MOUSE;
+            inputs[0].mi.dwFlags = upFlag;
+
+            SendInput((uint)inputs.Length, inputs, Marshal.SizeOf(typeof(INPUT)));
+        }
+
+
 
         /// <summary>
         /// Перемещает курсор мыши в указанную позицию на экране
@@ -124,10 +187,6 @@ namespace SELENIUM_WPF
             MouseClick(button);
         }
     }
-
-
-
-
 
 
 
@@ -206,7 +265,7 @@ public static class Keyboard_Emulator
         public const byte VK_BACK = 0x08;
         public const byte VK_TAB = 0x09;
         public const byte VK_CLEAR = 0x0C;
-        public const byte VK_RETURN = 0x0D;
+        public const byte VK_RETURN = 0x0D;  //  ЕНТЕР
         public const byte VK_SHIFT = 0x10;
         public const byte VK_CONTROL = 0x11;
         public const byte VK_MENU = 0x12;
@@ -383,13 +442,13 @@ public static class Keyboard_Emulator
 
         // Список расширенных клавиш
         private static readonly HashSet<byte> ExtendedKeys = new HashSet<byte>
-    {
-        VK_UP, VK_DOWN, VK_LEFT, VK_RIGHT,
-        VK_HOME, VK_END, VK_PRIOR, VK_NEXT,
-        VK_INSERT, VK_DELETE,
-        VK_RCONTROL, VK_RMENU,
-        VK_DIVIDE, VK_NUMLOCK
-    };
+        {
+            VK_UP, VK_DOWN, VK_LEFT, VK_RIGHT,
+            VK_HOME, VK_END, VK_PRIOR, VK_NEXT,
+            VK_INSERT, VK_DELETE,
+            VK_RCONTROL, VK_RMENU,
+            VK_DIVIDE, VK_NUMLOCK
+        };
 
         // Вспомогательный метод для получения скан-кода
         private static ushort VkToScan(byte vk)
@@ -601,16 +660,187 @@ public static class Keyboard_Emulator
                 Thread.Sleep(delayMs);
             }
         }
+
+
+
+
+
+        
+        public static readonly Dictionary<string, byte> VirtualKeyMap = new Dictionary<string, byte>
+        {
+            { nameof(VK_CANCEL), VK_CANCEL },
+            { nameof(VK_BACK), VK_BACK },
+            { nameof(VK_TAB), VK_TAB },
+            { nameof(VK_CLEAR), VK_CLEAR },
+            { nameof(VK_RETURN), VK_RETURN },
+            { nameof(VK_SHIFT), VK_SHIFT },
+            { nameof(VK_CONTROL), VK_CONTROL },
+            { nameof(VK_MENU), VK_MENU },
+            { nameof(VK_PAUSE), VK_PAUSE },
+            { nameof(VK_CAPITAL), VK_CAPITAL },
+            { nameof(VK_ESCAPE), VK_ESCAPE },
+            { nameof(VK_SPACE), VK_SPACE },
+
+            { nameof(VK_PRIOR), VK_PRIOR },
+            { nameof(VK_NEXT), VK_NEXT },
+            { nameof(VK_END), VK_END },
+            { nameof(VK_HOME), VK_HOME },
+            { nameof(VK_LEFT), VK_LEFT },
+            { nameof(VK_UP), VK_UP },
+            { nameof(VK_RIGHT), VK_RIGHT },
+            { nameof(VK_DOWN), VK_DOWN },
+            { nameof(VK_SELECT), VK_SELECT },
+            { nameof(VK_PRINT), VK_PRINT },
+            { nameof(VK_EXECUTE), VK_EXECUTE },
+            { nameof(VK_SNAPSHOT), VK_SNAPSHOT },
+            { nameof(VK_INSERT), VK_INSERT },
+            { nameof(VK_DELETE), VK_DELETE },
+            { nameof(VK_HELP), VK_HELP },
+
+            { nameof(VK_0), VK_0 },
+            { nameof(VK_1), VK_1 },
+            { nameof(VK_2), VK_2 },
+            { nameof(VK_3), VK_3 },
+            { nameof(VK_4), VK_4 },
+            { nameof(VK_5), VK_5 },
+            { nameof(VK_6), VK_6 },
+            { nameof(VK_7), VK_7 },
+            { nameof(VK_8), VK_8 },
+            { nameof(VK_9), VK_9 },
+
+            { nameof(VK_A), VK_A },
+            { nameof(VK_B), VK_B },
+            { nameof(VK_C), VK_C },
+            { nameof(VK_D), VK_D },
+            { nameof(VK_E), VK_E },
+            { nameof(VK_F), VK_F },
+            { nameof(VK_G), VK_G },
+            { nameof(VK_H), VK_H },
+            { nameof(VK_I), VK_I },
+            { nameof(VK_J), VK_J },
+            { nameof(VK_K), VK_K },
+            { nameof(VK_L), VK_L },
+            { nameof(VK_M), VK_M },
+            { nameof(VK_N), VK_N },
+            { nameof(VK_O), VK_O },
+            { nameof(VK_P), VK_P },
+            { nameof(VK_Q), VK_Q },
+            { nameof(VK_R), VK_R },
+            { nameof(VK_S), VK_S },
+            { nameof(VK_T), VK_T },
+            { nameof(VK_U), VK_U },
+            { nameof(VK_V), VK_V },
+            { nameof(VK_W), VK_W },
+            { nameof(VK_X), VK_X },
+            { nameof(VK_Y), VK_Y },
+            { nameof(VK_Z), VK_Z },
+
+            { nameof(VK_LWIN), VK_LWIN },
+            { nameof(VK_RWIN), VK_RWIN },
+            { nameof(VK_APPS), VK_APPS },
+
+            { nameof(VK_NUMPAD0), VK_NUMPAD0 },
+            { nameof(VK_NUMPAD1), VK_NUMPAD1 },
+            { nameof(VK_NUMPAD2), VK_NUMPAD2 },
+            { nameof(VK_NUMPAD3), VK_NUMPAD3 },
+            { nameof(VK_NUMPAD4), VK_NUMPAD4 },
+            { nameof(VK_NUMPAD5), VK_NUMPAD5 },
+            { nameof(VK_NUMPAD6), VK_NUMPAD6 },
+            { nameof(VK_NUMPAD7), VK_NUMPAD7 },
+            { nameof(VK_NUMPAD8), VK_NUMPAD8 },
+            { nameof(VK_NUMPAD9), VK_NUMPAD9 },
+            { nameof(VK_MULTIPLY), VK_MULTIPLY },
+            { nameof(VK_ADD), VK_ADD },
+            { nameof(VK_SEPARATOR), VK_SEPARATOR },
+            { nameof(VK_SUBTRACT), VK_SUBTRACT },
+            { nameof(VK_DECIMAL), VK_DECIMAL },
+            { nameof(VK_DIVIDE), VK_DIVIDE },
+
+            { nameof(VK_F1), VK_F1 },
+            { nameof(VK_F2), VK_F2 },
+            { nameof(VK_F3), VK_F3 },
+            { nameof(VK_F4), VK_F4 },
+            { nameof(VK_F5), VK_F5 },
+            { nameof(VK_F6), VK_F6 },
+            { nameof(VK_F7), VK_F7 },
+            { nameof(VK_F8), VK_F8 },
+            { nameof(VK_F9), VK_F9 },
+            { nameof(VK_F10), VK_F10 },
+            { nameof(VK_F11), VK_F11 },
+            { nameof(VK_F12), VK_F12 },
+            { nameof(VK_F13), VK_F13 },
+            { nameof(VK_F14), VK_F14 },
+            { nameof(VK_F15), VK_F15 },
+            { nameof(VK_F16), VK_F16 },
+            { nameof(VK_F17), VK_F17 },
+            { nameof(VK_F18), VK_F18 },
+            { nameof(VK_F19), VK_F19 },
+            { nameof(VK_F20), VK_F20 },
+            { nameof(VK_F21), VK_F21 },
+            { nameof(VK_F22), VK_F22 },
+            { nameof(VK_F23), VK_F23 },
+            { nameof(VK_F24), VK_F24 },
+
+            { nameof(VK_NUMLOCK), VK_NUMLOCK },
+            { nameof(VK_SCROLL), VK_SCROLL },
+
+            { nameof(VK_LSHIFT), VK_LSHIFT },
+            { nameof(VK_RSHIFT), VK_RSHIFT },
+            { nameof(VK_LCONTROL), VK_LCONTROL },
+            { nameof(VK_RCONTROL), VK_RCONTROL },
+            { nameof(VK_LMENU), VK_LMENU },
+            { nameof(VK_RMENU), VK_RMENU },
+
+            { nameof(VK_BROWSER_BACK), VK_BROWSER_BACK },
+            { nameof(VK_BROWSER_FORWARD), VK_BROWSER_FORWARD },
+            { nameof(VK_BROWSER_REFRESH), VK_BROWSER_REFRESH },
+            { nameof(VK_BROWSER_STOP), VK_BROWSER_STOP },
+            { nameof(VK_BROWSER_SEARCH), VK_BROWSER_SEARCH },
+            { nameof(VK_BROWSER_FAVORITES), VK_BROWSER_FAVORITES },
+            { nameof(VK_BROWSER_HOME), VK_BROWSER_HOME },
+            { nameof(VK_VOLUME_MUTE), VK_VOLUME_MUTE },
+            { nameof(VK_VOLUME_DOWN), VK_VOLUME_DOWN },
+            { nameof(VK_VOLUME_UP), VK_VOLUME_UP },
+            { nameof(VK_MEDIA_NEXT_TRACK), VK_MEDIA_NEXT_TRACK },
+            { nameof(VK_MEDIA_PREV_TRACK), VK_MEDIA_PREV_TRACK },
+            { nameof(VK_MEDIA_STOP), VK_MEDIA_STOP },
+            { nameof(VK_MEDIA_PLAY_PAUSE), VK_MEDIA_PLAY_PAUSE },
+            { nameof(VK_LAUNCH_MAIL), VK_LAUNCH_MAIL },
+            { nameof(VK_LAUNCH_MEDIA_SELECT), VK_LAUNCH_MEDIA_SELECT },
+            { nameof(VK_LAUNCH_APP1), VK_LAUNCH_APP1 },
+            { nameof(VK_LAUNCH_APP2), VK_LAUNCH_APP2 },
+
+            { nameof(VK_OEM_1), VK_OEM_1 },
+            { nameof(VK_OEM_PLUS), VK_OEM_PLUS },
+            { nameof(VK_OEM_COMMA), VK_OEM_COMMA },
+            { nameof(VK_OEM_MINUS), VK_OEM_MINUS },
+            { nameof(VK_OEM_PERIOD), VK_OEM_PERIOD },
+            { nameof(VK_OEM_2), VK_OEM_2 },
+            { nameof(VK_OEM_3), VK_OEM_3 },
+            { nameof(VK_OEM_4), VK_OEM_4 },
+            { nameof(VK_OEM_5), VK_OEM_5 },
+            { nameof(VK_OEM_6), VK_OEM_6 },
+            { nameof(VK_OEM_7), VK_OEM_7 },
+            { nameof(VK_OEM_8), VK_OEM_8 },
+            { nameof(VK_OEM_102), VK_OEM_102 },
+
+            { nameof(VK_PROCESSKEY), VK_PROCESSKEY },
+            { nameof(VK_PACKET), VK_PACKET },
+            { nameof(VK_ATTN), VK_ATTN },
+            { nameof(VK_CRSEL), VK_CRSEL },
+            { nameof(VK_EXSEL), VK_EXSEL },
+            { nameof(VK_EREOF), VK_EREOF },
+            { nameof(VK_PLAY), VK_PLAY },
+            { nameof(VK_ZOOM), VK_ZOOM },
+            { nameof(VK_NONAME), VK_NONAME },
+            { nameof(VK_PA1), VK_PA1 },
+            { nameof(VK_OEM_CLEAR), VK_OEM_CLEAR }
+        };
+
+
+
+
     }
-
-
-
-
-
-
-
-
-  
 
 
 }

@@ -3,27 +3,140 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
         xmlns:local="clr-namespace:SELENIUM_WPF"
         mc:Ignorable="d"
-        
-        
-        
-        Title="MainWindow" Height="450" Width="910">
-    <Grid x:Name="Main_W" HorizontalAlignment="Center" Width="910">
-        <TextBox x:Name="browse_TB" HorizontalAlignment="Left" Margin="85,134,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="432" Height="20"/>
-        <Button x:Name="browse_B" Content="Browse" HorizontalAlignment="Left" Margin="561,128,0,0" VerticalAlignment="Top" Width="96" Height="26"/>
-        <Label x:Name="clue_Patch_L" Content="Enter the patch to the APP" HorizontalAlignment="Left" Margin="226,129,0,0" VerticalAlignment="Top" Cursor="IBeam" Height="26" Foreground="{x:Static SystemColors.ActiveBorderBrush}" />
-        <Label x:Name="label1" Content="Status:" HorizontalAlignment="Left" Margin="85,23,0,0" VerticalAlignment="Top" FontSize="16"/>
-        <Label x:Name="status_L" Content="Status" HorizontalAlignment="Left" Margin="252,21,0,0" VerticalAlignment="Top" FontFamily="Times New Roman" FontSize="22" FontWeight="Bold" Foreground= "Fuchsia"/>
-        <Label x:Name="crash_L" Content="CRASH CODE:" HorizontalAlignment="Left" Margin="85,71,0,0" VerticalAlignment="Top" FontSize="16" Foreground= "Red" />
-        <Label x:Name="crash_Code_L" Content="34 69" HorizontalAlignment="Left" Margin="252,65,0,0" VerticalAlignment="Top" FontSize="22" FontWeight="Bold" Foreground= "Red" />
-        <Button x:Name="start_B" Content="Start APP" HorizontalAlignment="Left" Margin="446,243,0,0" VerticalAlignment="Top" Width="85"/>
-        <Label x:Name="error_APP_L" Content="ERROR" HorizontalAlignment="Left" Margin="85,177,0,0" VerticalAlignment="Top" Foreground= "Red" />
+        Title="MainWindow" Height="360" Width="700"
+        ResizeMode="CanMinimize">
 
-        <!-- удалить в конце!!!! -->
-        <Button x:Name="stop_B" Content="Stop APP" HorizontalAlignment="Left" Margin="714,332,0,0" VerticalAlignment="Top" Width="68" Height="24" Click="Button1_Click" />
-        <Button x:Name="get_controls_B" Content="get controls" HorizontalAlignment="Left" Margin="286,356,0,0" VerticalAlignment="Top" Click="temp_B_Click"/>
-        <!-- удалить в конце!!!! -->
+    <Grid>
+        <TabControl>
+            <!-- Первая вкладка -->
+            <TabItem x:Name="tab_Main" Header="Главная">
+                <Grid x:Name="Main_W" HorizontalAlignment="Center" Width="674">
 
+                    <!-- Контейнер строки ввода: скроллбар строго над TextBox, кнопка справа -->
+                    <Grid HorizontalAlignment="Left"
+                          Margin="57,122,0,10"
+                          Width="572">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="400"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Скроллбар -->
+                        <ScrollBar x:Name="browseScroll"
+                                   Grid.Row="0"
+                                   Grid.Column="0"
+                                   Orientation="Horizontal"
+                                   Height="10"
+                                   Minimum="0"
+                                   Maximum="0"
+                                   SmallChange="10"
+                                   LargeChange="50"
+                                   Scroll="browseScroll_Scroll"
+                                   Width="400"/>
+
+                        <!-- TextBox + Label -->
+                        <Grid Grid.Row="1" Grid.Column="0" Height="25">
+                            <TextBox x:Name="browse_TB"
+                                     Height="20"
+                                     VerticalAlignment="Center"
+                                     TextWrapping="NoWrap"
+                                     AcceptsReturn="False"
+                                     AcceptsTab="False"
+                                     HorizontalScrollBarVisibility="Hidden"
+                                     VerticalScrollBarVisibility="Disabled"
+                                     TextChanged="Browse_TB_TextChanged"/>
+                            <Label x:Name="clue_Patch_L"
+                                   Content="Введите путь к исполняемому файлу"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Cursor="IBeam"/>
+                        </Grid>
+
+                        <!-- Кнопка справа -->
+                        <Button x:Name="browse_B"
+                                Grid.Row="1"
+                                Grid.Column="1"
+                                Content="Поиск"
+                                Width="100"
+                                Height="25"
+                                Margin="5,0,0,0"
+                                VerticalAlignment="Center"/>
+                    </Grid>
+
+                    <!-- Остальные элементы -->
+                    <Label x:Name="label1" Content="Статус:" HorizontalAlignment="Left" 
+                           Margin="17,23,0,0" VerticalAlignment="Top" FontSize="16"/>
+                    <Label x:Name="status_L" Content="Status" HorizontalAlignment="Left" 
+                           Margin="136,23,0,0" VerticalAlignment="Top" FontFamily="Times New Roman" 
+                           FontSize="22" FontWeight="Bold" Foreground="Fuchsia"/>
+                    <Label x:Name="crash_L" Content="CRASH CODE:" HorizontalAlignment="Left" 
+                           Margin="17,69,0,0" VerticalAlignment="Top" FontSize="16" Foreground="Red" />
+                    <Label x:Name="crash_Code_L" Content="34 69" HorizontalAlignment="Left" 
+                           Margin="145,65,0,0" VerticalAlignment="Top" FontSize="22" FontWeight="Bold" 
+                           Foreground="Red" />
+                    <Label x:Name="error_APP_L" Content="ERROR" HorizontalAlignment="Left" 
+                           Margin="57,168,0,0" VerticalAlignment="Top" Foreground="Red" />
+
+                    <!-- Кнопки -->
+                    <Button x:Name="start_B" Content="запуск приложения" HorizontalAlignment="Left" 
+                            Margin="85,210,0,0" VerticalAlignment="Top" Width="120" Height="25"/>
+                    <Button x:Name="code_Run_B" Content="запуск кода" HorizontalAlignment="Left" 
+                            Margin="252,210,0,0" VerticalAlignment="Top" Click="Run_Code_Click" Height="25" Width="80"/>
+                    <Button x:Name="stop_B" Content="остановка приложения" HorizontalAlignment="Left" 
+                            Margin="377,210,0,0" VerticalAlignment="Top" Width="140" Height="25" 
+                            Click="Button1_Click" />
+
+                    <!-- Поля времени -->
+                    <Label Content="время на открытие приложения"
+                           HorizontalAlignment="Left"
+                           Margin="85,245,0,0"
+                           VerticalAlignment="Top"/>
+                    <TextBox x:Name="time_Open_TB"
+                             HorizontalAlignment="Left"
+                             Margin="283,251,0,0"
+                             VerticalAlignment="Top"
+                             Width="60"
+                             Height="20"
+                             TextChanged="TimeTextBox_TextChanged" Text="3"/>
+
+                    <Label Content="время на закрытие приложения"
+                           HorizontalAlignment="Left"
+                           Margin="377,245,0,0"
+                           VerticalAlignment="Top"/>
+                    <TextBox x:Name="time_Stop_TB"
+                             HorizontalAlignment="Left"
+                             Margin="570,251,0,0"
+                             VerticalAlignment="Top"
+                             Width="60"
+                             Height="20"
+                             TextChanged="TimeTextBox_TextChanged" Text="5"/>
+                </Grid>
+            </TabItem>
+
+            <!-- Вторая вкладка -->
+            <TabItem x:Name="tab_Code" Header="Код">
+                <Grid>
+                    <avalonEdit:TextEditor x:Name="code_TB"
+                               ShowLineNumbers="True"
+                               FontFamily="Source Code Pro"
+                               FontSize="14"
+                               FontWeight="Regular"
+                               FontStyle="Normal"
+                               Padding="5,5,0,5"
+                               BorderThickness="0"
+                               Background="White"
+                               HorizontalScrollBarVisibility="Auto"
+                               VerticalScrollBarVisibility="Auto"
+                               WordWrap="False"/>
+                </Grid>
+            </TabItem>
+        </TabControl>
     </Grid>
 </Window>

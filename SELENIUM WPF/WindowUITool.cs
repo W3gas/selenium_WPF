@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Windows;
 using System.Windows.Automation;
 
 namespace SELENIUM_WPF
@@ -64,23 +65,40 @@ namespace SELENIUM_WPF
         /// <param name="process">Процесс для поиска дочерних окон</param>
         /// <param name="windowName">Имя окна для поиска</param>
         /// <param name="makeWindowActive">Активировать найденное окно</param>
-        /// <returns>Список ElementRecord с UI элементами окна</returns>
-        public static List<ElementRecord> CaptureWindowUI(Process process, string windowName, bool makeWindowActive = false)
+        /// <returns>Список ElementRecord с UI элементами окна (всегда возвращает список, даже пустой)</returns>
+        public static List<ElementRecord> CaptureWindowUI(Process process, string windowName, bool makeWindowActive = true)
         {
-            if (process == null)
-                throw new ArgumentNullException(nameof(process));
-
-            if (string.IsNullOrEmpty(windowName))
-                throw new ArgumentException("Window name cannot be null or empty", nameof(windowName));
-
             try
             {
+                // Валидация входных параметров
+                if (process == null)
+                {
+                    ShowError("Процесс не может быть null", "Ошибка параметров");
+                    return new List<ElementRecord>();
+                }
+
+                if (string.IsNullOrEmpty(windowName))
+                {
+                    ShowError("Имя окна не может быть пустым", "Ошибка параметров");
+                    return new List<ElementRecord>();
+                }
+
+                // Проверка доступности процесса
+                if (process.HasExited)
+                {
+                    ShowError($"Процесс {process.ProcessName} (PID: {process.Id}) уже завершен", "Ошибка процесса");
+                    return new List<ElementRecord>();
+                }
+
                 // Получаем все дочерние окна процесса
                 var childWindows = GetChildWindowsOfProcess(process);
 
-                if (!childWindows.Any())
+                if (childWindows == null || !childWindows.Any())
                 {
-                    Console.WriteLine($"No child windows found for process {process.ProcessName} (PID: {process.Id})");
+                    ShowError(
+                        $"Не найдено ни одного дочернего окна для процесса:\n{process.ProcessName} (PID: {process.Id})",
+                        "Окна не найдены"
+                    );
                     return new List<ElementRecord>();
                 }
 
@@ -91,35 +109,58 @@ namespace SELENIUM_WPF
 
                 if (!matchingWindows.Any())
                 {
-                    Console.WriteLine($"No windows found with name containing '{windowName}'");
-                    Console.WriteLine("Available windows:");
-                    foreach (var window in childWindows.Take(10)) // Показываем первые 10 для примера
-                    {
-                        Console.WriteLine($"  - '{window.WindowTitle}' (Handle: {window.Handle})");
-                    }
+                    var availableWindows = string.Join("\n",
+                        childWindows.Take(10).Select(w => $"• {w.WindowTitle}"));
+
+                    ShowError(
+                        $"Не найдено окно с именем: '{windowName}'\n\n",
+                        "Окно не найдено"
+                    );
                     return new List<ElementRecord>();
                 }
 
-                // Берем последнее созданное окно (самое новое)
+                // Берем последнее созданное окно (самое новое) - окно с максимальным Handle
                 var targetWindow = matchingWindows
-                    .OrderByDescending(w => w.CreationTime)
+                    .OrderByDescending(w => w.Handle.ToInt64())
                     .First();
-
-                Console.WriteLine($"Found target window: '{targetWindow.WindowTitle}' (Handle: {targetWindow.Handle})");
 
                 // Активируем окно, если требуется
                 if (makeWindowActive)
                 {
-                    ActivateWindow(targetWindow.Handle);
+                    if (!ActivateWindow(targetWindow.Handle))
+                    {
+                        ShowWarning(
+                            $"Не удалось активировать окно:\n'{targetWindow.WindowTitle}'\n\nПродолжаем без активации...",
+                            "Предупреждение"
+                        );
+                    }
                 }
 
-                // Сканируем UI элементы с помощью вашего UI_Scanner
-                return ScanWindowUI(targetWindow.Element);
+                // Сканируем UI элементы
+                return ScanWindowUI(targetWindow.Element, targetWindow.WindowTitle);
+            }
+            catch (InvalidOperationException ex)
+            {
+                ShowError(
+                    $"Ошибка доступа к процессу:\n{ex.Message}",
+                    "Ошибка операции"
+                );
+                return new List<ElementRecord>();
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                ShowError(
+                    $"Недостаточно прав для доступа к процессу:\n{ex.Message}",
+                    "Ошибка доступа"
+                );
+                return new List<ElementRecord>();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in CaptureWindowUI: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                ShowError(
+                    $"Непредвиденная ошибка при захвате UI окна:\n{ex.Message}",
+                    "Критическая ошибка"
+                );
                 return new List<ElementRecord>();
             }
         }
@@ -130,12 +171,13 @@ namespace SELENIUM_WPF
         private static List<WindowInfo> GetChildWindowsOfProcess(Process process)
         {
             var windows = new List<WindowInfo>();
-            var processId = (uint)process.Id;
 
             try
             {
-                // Сначала получаем все окна верхнего уровня принадлежащие процессу
+                var processId = (uint)process.Id;
                 var topLevelWindows = new List<IntPtr>();
+
+                // Получаем все окна верхнего уровня принадлежащие процессу
                 EnumWindows((hWnd, lParam) =>
                 {
                     try
@@ -146,45 +188,53 @@ namespace SELENIUM_WPF
                             topLevelWindows.Add(hWnd);
                         }
                     }
-                    catch (Exception ex)
+                    catch
                     {
-                        Console.WriteLine($"Error processing window {hWnd}: {ex.Message}");
+                        // Игнорируем ошибки для отдельных окон
                     }
                     return true;
                 }, IntPtr.Zero);
 
-                Console.WriteLine($"Found {topLevelWindows.Count} top-level windows for process {process.ProcessName}");
-
                 // Для каждого окна верхнего уровня получаем его дочерние окна
                 foreach (var parentWindow in topLevelWindows)
                 {
-                    // Добавляем само родительское окно
-                    ProcessWindow(parentWindow, windows);
-
-                    // Добавляем дочерние окна
-                    EnumChildWindows(parentWindow, (hWnd, lParam) =>
+                    try
                     {
-                        try
+                        // Добавляем само родительское окно
+                        ProcessWindow(parentWindow, windows);
+
+                        // Добавляем дочерние окна
+                        EnumChildWindows(parentWindow, (hWnd, lParam) =>
                         {
-                            if (IsWindow(hWnd) && IsWindowVisible(hWnd))
+                            try
                             {
-                                ProcessWindow(hWnd, windows);
+                                if (IsWindow(hWnd) && IsWindowVisible(hWnd))
+                                {
+                                    ProcessWindow(hWnd, windows);
+                                }
                             }
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Error processing child window {hWnd}: {ex.Message}");
-                        }
-                        return true;
-                    }, IntPtr.Zero);
+                            catch
+                            {
+                                // Игнорируем ошибки для отдельных дочерних окон
+                            }
+                            return true;
+                        }, IntPtr.Zero);
+                    }
+                    catch
+                    {
+                        // Игнорируем ошибки для отдельных родительских окон
+                        continue;
+                    }
                 }
 
-                Console.WriteLine($"Total windows found: {windows.Count}");
                 return windows;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in GetChildWindowsOfProcess: {ex.Message}");
+                ShowError(
+                    $"Ошибка при получении списка окон процесса:\n{ex.Message}",
+                    "Ошибка перечисления окон"
+                );
                 return windows;
             }
         }
@@ -207,7 +257,7 @@ namespace SELENIUM_WPF
                     return;
                 }
 
-                // КРИТИЧЕСКИ ВАЖНО: создаем AutomationElement с обработкой ошибок
+                // Создаем AutomationElement с обработкой ошибок
                 AutomationElement element = null;
                 System.Windows.Rect bounds = System.Windows.Rect.Empty;
 
@@ -216,27 +266,21 @@ namespace SELENIUM_WPF
                     element = AutomationElement.FromHandle(hWnd);
                     if (element != null)
                     {
-                        // Получаем границы через UI Automation
                         bounds = element.Current.BoundingRectangle;
-
-                        // Проверяем, что element действительно работает
-                        var _ = element.Current.Name; // Это вызовет исключение если element не валиден
+                        // Проверяем валидность элемента
+                        var _ = element.Current.Name;
+                    }
+                    else
+                    {
+                        return;
                     }
                 }
                 catch (ElementNotAvailableException)
                 {
-                    Console.WriteLine($"Window {hWnd} ({windowTitle}) not available for UI Automation");
                     return;
                 }
-                catch (Exception ex)
+                catch
                 {
-                    Console.WriteLine($"Cannot create AutomationElement for window {hWnd} ({windowTitle}): {ex.Message}");
-                    return;
-                }
-
-                if (element == null)
-                {
-                    Console.WriteLine($"Failed to create AutomationElement for window {hWnd} ({windowTitle})");
                     return;
                 }
 
@@ -248,40 +292,38 @@ namespace SELENIUM_WPF
                     Element = element,
                     Bounds = bounds
                 });
-
-                Console.WriteLine($"Added window: '{windowTitle}' (Handle: {hWnd})");
             }
-            catch (Exception ex)
+            catch
             {
-                Console.WriteLine($"Error processing window {hWnd}: {ex.Message}");
+                // Игнорируем ошибки обработки отдельных окон
             }
         }
 
         /// <summary>
         /// Активирует окно (выводит на передний план)
         /// </summary>
-        private static void ActivateWindow(IntPtr hWnd)
+        private static bool ActivateWindow(IntPtr hWnd)
         {
             try
             {
                 // Если окно свернуто, восстанавливаем его
                 if (IsIconic(hWnd))
                 {
-                    ShowWindow(hWnd, SW_RESTORE);
+                    if (!ShowWindow(hWnd, SW_RESTORE))
+                        return false;
                 }
                 else
                 {
-                    ShowWindow(hWnd, SW_SHOW);
+                    if (!ShowWindow(hWnd, SW_SHOW))
+                        return false;
                 }
 
                 // Выводим на передний план
-                SetForegroundWindow(hWnd);
-
-                Console.WriteLine("Window activated and brought to foreground");
+                return SetForegroundWindow(hWnd);
             }
-            catch (Exception ex)
+            catch
             {
-                Console.WriteLine($"Error activating window: {ex.Message}");
+                return false;
             }
         }
 
@@ -310,73 +352,118 @@ namespace SELENIUM_WPF
         /// </summary>
         private static DateTime GetWindowCreationTime(IntPtr hWnd)
         {
-            // Handle окна обычно увеличивается со временем
-            // Используем это для приблизительной сортировки по времени создания
-            return DateTime.Now.AddMilliseconds(-(Environment.TickCount - Math.Abs(hWnd.ToInt64() % 1000000)));
+            try
+            {
+                return DateTime.Now.AddMilliseconds(-(Environment.TickCount - Math.Abs(hWnd.ToInt64() % 1000000)));
+            }
+            catch
+            {
+                return DateTime.Now;
+            }
         }
 
         /// <summary>
         /// Сканирует UI элементы окна с помощью UI_Scanner
         /// </summary>
-        private static List<ElementRecord> ScanWindowUI(AutomationElement windowElement)
+        private static List<ElementRecord> ScanWindowUI(AutomationElement windowElement, string windowTitle)
         {
             if (windowElement == null)
             {
-                Console.WriteLine("Window element is null, cannot scan UI");
+                ShowError(
+                    "Элемент окна недоступен для сканирования UI",
+                    "Ошибка UI Automation"
+                );
                 return new List<ElementRecord>();
             }
 
             try
             {
-                Console.WriteLine("Starting UI scan...");
-
-                // ВАЖНО: передаем валидный AutomationElement в ваш UI_Scanner
+                // Вызываем UI_Scanner для получения элементов
                 var records = UI_Scanner.SnapshotControls(windowElement);
-
-                Console.WriteLine($"UI_Scanner.SnapshotControls returned {records?.Count ?? 0} elements");
 
                 if (records == null)
                 {
-                    Console.WriteLine("UI_Scanner.SnapshotControls returned null");
+                    ShowWarning(
+                        $"UI_Scanner не вернул элементы для окна:\n'{windowTitle}'",
+                        "Предупреждение сканирования"
+                    );
                     return new List<ElementRecord>();
                 }
 
                 if (records.Count == 0)
                 {
-                    Console.WriteLine("No UI elements found by UI_Scanner");
+                    ShowInfo(
+                        $"В окне '{windowTitle}' не найдено UI элементов",
+                        "Информация"
+                    );
                     return records;
                 }
 
                 // Оцениваем доступность элементов
-                Console.WriteLine("Evaluating element availability...");
-                UI_Scanner.EvaluateAvailability(windowElement, records);
-
-                // Выводим статистику
-                var interactableCount = records.Count(r => r.InteractableNow);
-                Console.WriteLine($"UI scan completed:");
-                Console.WriteLine($"  Total elements: {records.Count}");
-                Console.WriteLine($"  Interactable elements: {interactableCount}");
-
-                // Выводим первые несколько интерактивных элементов для отладки
-                var interactableElements = records.Where(r => r.InteractableNow).Take(5);
-                foreach (var element in interactableElements)
+                try
                 {
-                    Console.WriteLine($"  Interactive: {element.ControlType} '{element.Name}' at ({element.CenterPoint.X},{element.CenterPoint.Y})");
+                    UI_Scanner.EvaluateAvailability(windowElement, records);
+                }
+                catch (Exception ex)
+                {
+                    ShowWarning(
+                        $"Ошибка при оценке доступности элементов:\n{ex.Message}\n\nПродолжаем с базовыми данными...",
+                        "Предупреждение"
+                    );
                 }
 
                 return records;
             }
+            catch (ElementNotAvailableException)
+            {
+                ShowError(
+                    $"Окно '{windowTitle}' стало недоступным во время сканирования",
+                    "Элемент недоступен"
+                );
+                return new List<ElementRecord>();
+            }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error scanning UI: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                ShowError(
+                    $"Ошибка при сканировании UI окна '{windowTitle}':\n{ex.Message}",
+                    "Ошибка сканирования"
+                );
                 return new List<ElementRecord>();
             }
         }
 
-      
-    }
+        #region Методы отображения сообщений
 
-    
-    
+        private static void ShowError(string message, string title)
+        {
+            System.Windows.MessageBox.Show(
+                messageBoxText: $"\t{message}",
+                caption: title,
+                button: MessageBoxButton.OK,
+                icon: MessageBoxImage.Error
+            );
+        }
+
+        private static void ShowWarning(string message, string title)
+        {
+            System.Windows.MessageBox.Show(
+                messageBoxText: $"\t{message}",
+                caption: title,
+                button: MessageBoxButton.OK,
+                icon: MessageBoxImage.Warning
+            );
+        }
+
+        private static void ShowInfo(string message, string title)
+        {
+            System.Windows.MessageBox.Show(
+                messageBoxText: $"\t{message}",
+                caption: title,
+                button: MessageBoxButton.OK,
+                icon: MessageBoxImage.Information
+            );
+        }
+
+        #endregion
+    }
 }
