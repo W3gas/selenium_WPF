@@ -91,7 +91,7 @@
                             Margin="252,210,0,0" VerticalAlignment="Top" Click="Run_Code_Click" Height="25" Width="80"/>
                     <Button x:Name="stop_B" Content="остановка приложения" HorizontalAlignment="Left" 
                             Margin="377,210,0,0" VerticalAlignment="Top" Width="140" Height="25" 
-                            Click="Button1_Click" />
+                            Click="Stop_APP_Click" />
 
                     <!-- Поля времени -->
                     <Label Content="время на открытие приложения"

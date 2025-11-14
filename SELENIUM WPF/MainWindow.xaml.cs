@@ -368,7 +368,7 @@ namespace SELENIUM_WPF
         }
 
         //AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-        private void Button1_Click(object sender, RoutedEventArgs e)
+        private void Stop_APP_Click(object sender, RoutedEventArgs e)
         {                                                                
             STOP_APP();
         }
@@ -1875,6 +1875,7 @@ namespace SELENIUM_WPF
             }
 
 
+
             if (!Is_Console_App)
             {
                 if (Main_Proc == null)
@@ -1926,16 +1927,64 @@ namespace SELENIUM_WPF
                         Main_Proc.Kill();
                         return;
                     }
-                    bool rez = Commands[item.Command_Name](item.args, item.Full_Command);
+
+                    // Проверка существования команды в словаре
+                    if (!Commands.ContainsKey(item.Command_Name))
+                    {
+                        int lineNumber = 0;
+                        int offset = code_TB.Document.Text.IndexOf(item.Full_Command);
+                        if (offset >= 0)
+                        {
+                            DocumentLine line = code_TB.Document.GetLineByOffset(offset);
+                            lineNumber = line.LineNumber;
+                        }
+
+                        System.Windows.MessageBox.Show(
+                            owner: this,
+                            messageBoxText: $"\tОшибка синтаксиса:\n неизвестная команда '{item.Command_Name}' в строке с номером {lineNumber}",
+                            caption: "Парсер псевдокода",
+                            button: MessageBoxButton.OK,
+                            icon: MessageBoxImage.Error
+                        );
+                        return;
+                    }
+
+                    bool rez = true;
+                    try
+                    {
+                        rez = Commands[item.Command_Name](item.args, item.Full_Command);
+                    }
+                    catch (Exception ex)
+                    {
+                        rez = false;
+                        int lineNumber = 0;
+                        int offset = code_TB.Document.Text.IndexOf(item.Full_Command);
+                        if (offset >= 0)
+                        {
+                            DocumentLine line = code_TB.Document.GetLineByOffset(offset);
+                            lineNumber = line.LineNumber;
+                        }
+
+                        System.Windows.MessageBox.Show(
+                            owner: this,
+                            messageBoxText: $"\tОшибка выполнения команды:\n в строке с номером {lineNumber}\n\nДетали: {ex.Message}",
+                            caption: "Парсер псевдокода",
+                            button: MessageBoxButton.OK,
+                            icon: MessageBoxImage.Error
+                        );
+                    }
+
                     if (!rez)
                     {
                         return;
-                    }   
-                }    
+                    }
+                }
             }
 
         }
 
+
+        //                                                                                  обработчик времени на загрузку и закрытие
         private void TimeTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             var tb = sender as System.Windows.Controls.TextBox;
@@ -1953,7 +2002,7 @@ namespace SELENIUM_WPF
 
                 tb.Text = newText;
 
-                // Новый индекс = старый - удалённые слева
+                
                 int newCaret = Math.Max(0, oldCaret - removedLeft);
                 if (newCaret > newText.Length) newCaret = newText.Length;
 
@@ -1961,5 +2010,6 @@ namespace SELENIUM_WPF
             }
         }
 
+      
     }
 }
