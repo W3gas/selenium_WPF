@@ -37,6 +37,8 @@ namespace SELENIUM_WPF
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern bool GenerateConsoleCtrlEvent(uint dwCtrlEvent, uint dwProcessGroupId);
 
+
+
         /// <summary>
         /// Пытается аккуратно завершить процесс. 
         /// </summary>
@@ -59,7 +61,7 @@ namespace SELENIUM_WPF
                     return;
                 }
 
-                // Собираем все окна процесса
+                //  Сбор всех окон процесса
                 List<IntPtr> windows = null;
                 try
                 {
@@ -71,7 +73,7 @@ namespace SELENIUM_WPF
                     windows = new List<IntPtr>();
                 }
 
-                // Если это GUI-процесс с несколькими окнами
+                //  Если это GUI-процесс с несколькими окнами
                 if (windows.Count > 1)
                 {
                     foreach (var hWnd in windows)
@@ -86,7 +88,7 @@ namespace SELENIUM_WPF
                         }
                     }
                 }
-                // Одинокое окно — CloseMainWindow
+                //  Одинокое окно — CloseMainWindow
                 else if (windows.Count == 1)
                 {
                     try
@@ -98,7 +100,7 @@ namespace SELENIUM_WPF
                         //Debug.WriteLine($"ProcessCloser: CloseMainWindow не сработал для процесса {proc.Id}: {ex}");
                     }
                 }
-                // Ни одного окна — пробуем Ctrl+C
+                //  Ни одного окна — Ctrl+C
                 else
                 {
                     bool ctrlSent = false;
@@ -126,7 +128,7 @@ namespace SELENIUM_WPF
                             return;
                     }
 
-                    // если все попытки не помогли — принудим процесс завершиться
+                    //  смэрть
                     try
                     {
                         if (!proc.HasExited)
@@ -140,7 +142,7 @@ namespace SELENIUM_WPF
                     return;
                 }
 
-                // Ждём завершения GUI-процесса
+               
                 try
                 {
                     proc.WaitForExit(timeoutMs);
@@ -164,10 +166,11 @@ namespace SELENIUM_WPF
             }
             catch (Exception ex)
             {
-                // Перехватываем всё, чтобы код не упал
+                
                 //Debug.WriteLine($"ProcessCloser: неожиданное исключение: {ex}");
             }
         }
+
 
         private static List<IntPtr> GetWindowsForProcess(int pid)
         {
@@ -184,7 +187,7 @@ namespace SELENIUM_WPF
                     }
                     catch
                     {
-                        // проигнорировать ошибки получения PID окна
+                       
                     }
                     return true;
                 }, IntPtr.Zero);
@@ -196,6 +199,7 @@ namespace SELENIUM_WPF
             return result;
         }
 
+
         private static bool TrySendCtrlC(int pid)
         {
             try
@@ -206,7 +210,7 @@ namespace SELENIUM_WPF
                     return false;
                 }
 
-                // Отключаем свой обработчик, чтобы не поймать Ctrl+C самим
+               // отключение обработчика чтобы не словить собственный Ctrl+C
                 SetConsoleCtrlHandler(null, true);
 
                 bool sent = GenerateConsoleCtrlEvent(CTRL_C_EVENT, 0);

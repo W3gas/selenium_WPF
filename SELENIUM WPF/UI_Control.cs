@@ -16,6 +16,7 @@ namespace SELENIUM_WPF
             public MOUSEINPUT mi;
         }
 
+
         [StructLayout(LayoutKind.Sequential)]
         struct MOUSEINPUT
         {
@@ -27,6 +28,7 @@ namespace SELENIUM_WPF
             public IntPtr dwExtraInfo;
         }
 
+
         const uint INPUT_MOUSE = 0;
         const uint MOUSEEVENTF_LEFTDOWN = 0x0002;
         const uint MOUSEEVENTF_LEFTUP = 0x0004;
@@ -37,14 +39,17 @@ namespace SELENIUM_WPF
         const uint MOUSEEVENTF_MOVE = 0x0001;
         const uint MOUSEEVENTF_ABSOLUTE = 0x8000;
 
+
         [DllImport("user32.dll", SetLastError = true)]
         static extern uint SendInput(uint nInputs, INPUT[] pInputs, int cbSize);
 
         [DllImport("user32.dll")]
         static extern int GetSystemMetrics(int nIndex);
 
+
         const int SM_CXSCREEN = 0; // Ширина экрана
         const int SM_CYSCREEN = 1; // Высота экрана
+
 
         public enum MouseButton
         {
@@ -52,6 +57,7 @@ namespace SELENIUM_WPF
             Right,
             Middle
         }
+
 
         public static void MouseClick(MouseButton button = MouseButton.Left)
         {
@@ -84,8 +90,6 @@ namespace SELENIUM_WPF
         }
 
 
-
-
         public static void MouseDown(MouseButton button = MouseButton.Left)
         {
             uint downFlag = 0, upFlag = 0;
@@ -113,7 +117,6 @@ namespace SELENIUM_WPF
 
             SendInput((uint)inputs.Length, inputs, Marshal.SizeOf(typeof(INPUT)));
         }
-
 
 
         public static void MouseUp(MouseButton button = MouseButton.Left)
@@ -145,7 +148,6 @@ namespace SELENIUM_WPF
         }
 
 
-
         /// <summary>
         /// Перемещает курсор мыши в указанную позицию на экране
         /// </summary>
@@ -153,12 +155,11 @@ namespace SELENIUM_WPF
         /// <param name="y">Координата Y (вертикальная позиция в пикселях)</param>
         public static void MoveCursor(int x, int y)
         {
-            // Получаем размеры экрана
+            //  размеры экрана
             int screenWidth = GetSystemMetrics(SM_CXSCREEN);
             int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 
-            // Преобразуем координаты в формат Windows (0-65535)
-            // Windows использует нормализованные координаты для абсолютного позиционирования
+            // Преобразование координат в формат Windows (0-65535)
             int normalizedX = (x * 65535) / screenWidth;
             int normalizedY = (y * 65535) / screenHeight;
 
@@ -173,6 +174,7 @@ namespace SELENIUM_WPF
 
             SendInput((uint)inputs.Length, inputs, Marshal.SizeOf(typeof(INPUT)));
         }
+
 
         /// <summary>
         /// Комбинированная функция: перемещает курсор и делает клик
@@ -190,16 +192,17 @@ namespace SELENIUM_WPF
 
 
 
-
-public static class Keyboard_Emulator
+    public static class Keyboard_Emulator
     {
-        // Правильная структура INPUT с union
+       
+
         [StructLayout(LayoutKind.Sequential)]
         struct INPUT
         {
             public uint type;
             public INPUTUNION U;
         }
+
 
         [StructLayout(LayoutKind.Explicit)]
         struct INPUTUNION
@@ -208,6 +211,7 @@ public static class Keyboard_Emulator
             [FieldOffset(0)] public KEYBDINPUT ki;
             [FieldOffset(0)] public HARDWAREINPUT hi;
         }
+
 
         [StructLayout(LayoutKind.Sequential)]
         struct MOUSEINPUT
@@ -220,6 +224,7 @@ public static class Keyboard_Emulator
             public UIntPtr dwExtraInfo;
         }
 
+
         [StructLayout(LayoutKind.Sequential)]
         struct KEYBDINPUT
         {
@@ -230,6 +235,7 @@ public static class Keyboard_Emulator
             public UIntPtr dwExtraInfo;
         }
 
+
         [StructLayout(LayoutKind.Sequential)]
         struct HARDWAREINPUT
         {
@@ -238,12 +244,14 @@ public static class Keyboard_Emulator
             public ushort wParamH;
         }
 
+
         const uint INPUT_KEYBOARD = 1;
         const uint KEYEVENTF_EXTENDEDKEY = 0x0001;
         const uint KEYEVENTF_KEYUP = 0x0002;
         const uint KEYEVENTF_UNICODE = 0x0004;
         const uint KEYEVENTF_SCANCODE = 0x0008;
         const uint MAPVK_VK_TO_VSC = 0x0;
+
 
         [DllImport("user32.dll", SetLastError = true)]
         static extern uint SendInput(uint nInputs, INPUT[] pInputs, int cbSize);
@@ -259,6 +267,7 @@ public static class Keyboard_Emulator
 
         [DllImport("user32.dll")]
         static extern uint MapVirtualKeyEx(uint uCode, uint uMapType, IntPtr dwhkl);
+
 
         // Специальные клавиши
         public const byte VK_CANCEL = 0x03;
@@ -440,6 +449,7 @@ public static class Keyboard_Emulator
         public const byte VK_PA1 = 0xFD;
         public const byte VK_OEM_CLEAR = 0xFE;
 
+
         // Список расширенных клавиш
         private static readonly HashSet<byte> ExtendedKeys = new HashSet<byte>
         {
@@ -450,12 +460,14 @@ public static class Keyboard_Emulator
             VK_DIVIDE, VK_NUMLOCK
         };
 
+
         // Вспомогательный метод для получения скан-кода
         private static ushort VkToScan(byte vk)
         {
             var hkl = GetKeyboardLayout(0);
             return (ushort)MapVirtualKeyEx(vk, MAPVK_VK_TO_VSC, hkl);
         }
+
 
         /// <summary>
         /// Нажать клавишу (без отпускания)
@@ -484,6 +496,7 @@ public static class Keyboard_Emulator
             SendInput((uint)inputs.Length, inputs, Marshal.SizeOf(typeof(INPUT)));
         }
 
+
         /// <summary>
         /// Отпустить клавишу
         /// </summary>
@@ -511,6 +524,7 @@ public static class Keyboard_Emulator
             SendInput((uint)inputs.Length, inputs, Marshal.SizeOf(typeof(INPUT)));
         }
 
+
         /// <summary>
         /// Нажать и отпустить клавишу
         /// </summary>
@@ -520,6 +534,7 @@ public static class Keyboard_Emulator
             Thread.Sleep(delayMs);
             KeyUp(keyCode);
         }
+
 
         /// <summary>
         /// Нажать комбинацию клавиш (например: Ctrl+C)
@@ -543,6 +558,7 @@ public static class Keyboard_Emulator
             }
         }
 
+
         /// <summary>
         /// Ввести текст посимвольно (работает с любой раскладкой через Unicode)
         /// </summary>
@@ -554,6 +570,7 @@ public static class Keyboard_Emulator
                 Thread.Sleep(delayMs);
             }
         }
+
 
         /// <summary>
         /// Ввести один символ через Unicode (работает с любой раскладкой)
@@ -593,6 +610,7 @@ public static class Keyboard_Emulator
             SendInput((uint)inputs.Length, inputs, Marshal.SizeOf(typeof(INPUT)));
         }
 
+
         /// <summary>
         /// Переключить раскладку клавиатуры (Alt+Shift или Ctrl+Shift в зависимости от настроек системы)
         /// </summary>
@@ -603,69 +621,10 @@ public static class Keyboard_Emulator
             Thread.Sleep(100); // Даём время системе переключить раскладку
         }
 
-        /// <summary>
-        /// Ввести текст с использованием виртуальных клавиш и автоматическим переключением раскладки
-        /// </summary>
-        public static void TypeTextVK(string text, int delayMs = 10)
-        {
-            foreach (char c in text)
-            {
-                short vkAndShift = VkKeyScan(c);
-                int attemptCount = 0;
-                const int maxAttempts = 10; // Максимум 10 попыток (чтобы не зациклиться)
 
-                // Цикл поиска нужной раскладки
-                while (vkAndShift == -1 && attemptCount < maxAttempts)
-                {
-                    // Символ не найден в текущей раскладке - переключаем раскладку
-                    SwitchKeyboardLayout();
-
-                    // Проверяем снова
-                    vkAndShift = VkKeyScan(c);
-                    attemptCount++;
-                }
-
-                // Если после всех попыток символ не найден - используем Unicode метод
-                if (vkAndShift == -1)
-                {
-                    TypeCharUnicode(c);
-                }
-                else
-                {
-                    // Извлекаем виртуальный код (младший байт)
-                    byte vk = (byte)(vkAndShift & 0xFF);
-
-                    // Извлекаем состояние модификаторов (старший байт)
-                    byte shiftState = (byte)(vkAndShift >> 8);
-
-                    // Проверяем какие модификаторы нужны
-                    bool needShift = (shiftState & 1) != 0;  // Бит 0
-                    bool needCtrl = (shiftState & 2) != 0;   // Бит 1
-                    bool needAlt = (shiftState & 4) != 0;    // Бит 2
-
-                    // Нажимаем модификаторы
-                    if (needShift) KeyDown(VK_SHIFT);
-                    if (needCtrl) KeyDown(VK_CONTROL);
-                    if (needAlt) KeyDown(VK_MENU);
-
-                    // Нажимаем саму клавишу
-                    KeyPress(vk);
-
-                    // Отпускаем модификаторы (в обратном порядке)
-                    if (needAlt) KeyUp(VK_MENU);
-                    if (needCtrl) KeyUp(VK_CONTROL);
-                    if (needShift) KeyUp(VK_SHIFT);
-                }
-
-                Thread.Sleep(delayMs);
-            }
-        }
+       
 
 
-
-
-
-        
         public static readonly Dictionary<string, byte> VirtualKeyMap = new Dictionary<string, byte>
         {
             { nameof(VK_CANCEL), VK_CANCEL },
@@ -839,8 +798,8 @@ public static class Keyboard_Emulator
 
 
 
-
     }
+
 
 
 }

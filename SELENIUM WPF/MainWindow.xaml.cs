@@ -1699,17 +1699,6 @@ namespace SELENIUM_WPF
 
 
 
-
-
-
-
-
-
-
-
-
-
-
             Analyze_Code();                                                    //  считывание кода
 
 

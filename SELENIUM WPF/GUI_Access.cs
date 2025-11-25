@@ -61,7 +61,7 @@ namespace SELENIUM_WPF
                 fs.Seek(0x3C, SeekOrigin.Begin);
                 int peHeaderOffset = reader.ReadInt32();
 
-                fs.Seek(peHeaderOffset + 0x5C, SeekOrigin.Begin); // Subsystem field
+                fs.Seek(peHeaderOffset + 0x5C, SeekOrigin.Begin);
                 ushort subsystem = reader.ReadUInt16();
 
                 return subsystem switch

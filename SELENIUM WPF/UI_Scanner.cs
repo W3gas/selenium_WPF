@@ -69,7 +69,9 @@ namespace SELENIUM_WPF
 
     public static class UI_Scanner
     {
-        // Снимок: собираем все контролы под корнем, с кэшированием свойств для производительности
+
+
+        //  Снимок всех контролов под корнем, с кэшированием свойств для производительности
         public static List<ElementRecord> SnapshotControls(AutomationElement root)
         {
 
@@ -94,16 +96,16 @@ namespace SELENIUM_WPF
             cache.Add(AutomationElement.IsContentElementProperty);
             cache.Add(AutomationElement.RuntimeIdProperty);
 
-            using (cache.Activate()) // вместо using var cache / Push/Pop
+            using (cache.Activate()) 
             {
-                // Берём только контролы
+                
                 var isControlCondition = new PropertyCondition(AutomationElement.IsControlElementProperty, true);
                 var all = root.FindAll(TreeScope.Subtree, isControlCondition);
 
                 var list = new List<ElementRecord>(all.Count);
                 foreach (AutomationElement el in all)
                 {
-                    // ControlType.ProgrammaticName: например, "ControlType.Button" -> "Button"
+                    
                     var ctName = el.Cached.ControlType.ProgrammaticName;
                     var controlTypeShort = ctName != null && ctName.Contains(".")
                         ? ctName[(ctName.IndexOf('.') + 1)..]
@@ -137,7 +139,7 @@ namespace SELENIUM_WPF
         }
 
 
-        // Оценка «доступности сейчас» для каждого элемента из снимка
+        //  Оценка «доступности сейчас» для каждого элемента из снимка
         public static void EvaluateAvailability(AutomationElement root, IList<ElementRecord> records)
         {
             if (root == null) throw new ArgumentNullException(nameof(root));
@@ -180,7 +182,7 @@ namespace SELENIUM_WPF
                     continue;
                 }
 
-                // Предки не спрятали элемент (например, Collapsed)
+                // Предки не спрятали элемент
                 r.AncestorCollapsed = HasCollapsedAncestor(r.Element);
                 if (r.AncestorCollapsed)
                 {
@@ -212,22 +214,27 @@ namespace SELENIUM_WPF
             }
         }
 
-        // ——————— ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ———————
+
+
+
+        //  ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ
 
         private static System.Drawing.Point CalculateCenterPoint(Rect bounds)
         {
-            // Вычисляем центр и приводим к целочисленным координатам
+            //  вычисление центра и привидение к целочисленным координатам
             int centerX = (int)Math.Round(bounds.X + bounds.Width / 2);
             int centerY = (int)Math.Round(bounds.Y + bounds.Height / 2);
 
             return new System.Drawing.Point(centerX, centerY);
         }
 
+
         private static int[] SafeGetRuntimeId(AutomationElement el)
         {
             try { return el.GetRuntimeId(); }
             catch { return Array.Empty<int>(); }
         }
+
 
         private static PatternFlags DetectPatterns(AutomationElement el)
         {
@@ -241,7 +248,7 @@ namespace SELENIUM_WPF
                 }
                 catch
                 {
-                    // Игнорируем исключения при проверке паттернов
+                    
                 }
             }
 
@@ -254,10 +261,10 @@ namespace SELENIUM_WPF
             Check(ScrollItemPattern.Pattern, PatternFlags.ScrollItem);
             Check(TextPattern.Pattern, PatternFlags.Text);
 
-            // Попробуем найти LegacyIAccessiblePattern - он может называться по-разному в разных версиях
+            
             try
             {
-                // Ищем поле Pattern в классе LegacyIAccessiblePattern через рефлексию
+               
                 var legacyType = typeof(AutomationElement).Assembly.GetTypes()
                     .FirstOrDefault(t => t.Name.Contains("LegacyIAccessible") && t.Name.Contains("Pattern"));
 
@@ -274,15 +281,16 @@ namespace SELENIUM_WPF
             }
             catch
             {
-                // Если не удалось найти LegacyIAccessiblePattern, просто игнорируем
+                
             }
 
             return flags;
         }
 
+
         private static bool IntersectsAnyScreen(Rect r)
         {
-            // Приводим к целочисленному прямоугольнику для сравнения с экранами WinForms
+            // приведение для сравнения с экраном
             var rr = new System.Drawing.Rectangle((int)r.X, (int)r.Y, (int)Math.Max(0, r.Width), (int)Math.Max(0, r.Height));
             foreach (var screen in Forms.Screen.AllScreens)
             {
@@ -290,6 +298,7 @@ namespace SELENIUM_WPF
             }
             return false;
         }
+
 
         private static bool HasCollapsedAncestor(AutomationElement el)
         {
@@ -311,6 +320,7 @@ namespace SELENIUM_WPF
             return false;
         }
 
+
         private static bool TryHasClickablePoint(AutomationElement el)
         {
             try
@@ -319,10 +329,11 @@ namespace SELENIUM_WPF
             }
             catch
             {
-                // Некоторые провайдеры кидают исключения при попытке запроса кликабельной точки
+                
                 return false;
             }
         }
+
 
         private static bool IsWindowMinimized(AutomationElement root)
         {
@@ -334,7 +345,7 @@ namespace SELENIUM_WPF
                     return state == WindowVisualState.Minimized;
                 }
             }
-            catch { /* ignore */ }
+            catch {}
             return false;
         }
     }

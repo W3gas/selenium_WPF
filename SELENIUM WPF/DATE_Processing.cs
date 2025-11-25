@@ -111,7 +111,7 @@ namespace SELENIUM_WPF
             return SetForegroundWindow(hWnd);   // активировать окно
         }
 
-
+        //  анализ псевдокода
         public void Analyze_Code()
         {
             command_s.Clear();

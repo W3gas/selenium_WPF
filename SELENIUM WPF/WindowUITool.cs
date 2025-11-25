@@ -59,6 +59,7 @@ namespace SELENIUM_WPF
 
         #endregion
 
+
         /// <summary>
         /// Получает дочерние окна процесса, находит нужное по имени и сканирует его UI элементы
         /// </summary>
@@ -90,7 +91,7 @@ namespace SELENIUM_WPF
                     return new List<ElementRecord>();
                 }
 
-                // Получаем все дочерние окна процесса
+                //  все дочерние окна процесса
                 var childWindows = GetChildWindowsOfProcess(process);
 
                 if (childWindows == null || !childWindows.Any())
@@ -102,7 +103,7 @@ namespace SELENIUM_WPF
                     return new List<ElementRecord>();
                 }
 
-                // Ищем окна с нужным именем
+                //  окна с нужным именем
                 var matchingWindows = childWindows
                     .Where(w => w.WindowTitle.Contains(windowName, StringComparison.OrdinalIgnoreCase))
                     .ToList();
@@ -119,12 +120,12 @@ namespace SELENIUM_WPF
                     return new List<ElementRecord>();
                 }
 
-                // Берем последнее созданное окно (самое новое) - окно с максимальным Handle
+              
                 var targetWindow = matchingWindows
                     .OrderByDescending(w => w.Handle.ToInt64())
                     .First();
 
-                // Активируем окно, если требуется
+                
                 if (makeWindowActive)
                 {
                     if (!ActivateWindow(targetWindow.Handle))
@@ -136,7 +137,7 @@ namespace SELENIUM_WPF
                     }
                 }
 
-                // Сканируем UI элементы
+               
                 return ScanWindowUI(targetWindow.Element, targetWindow.WindowTitle);
             }
             catch (InvalidOperationException ex)
@@ -165,6 +166,7 @@ namespace SELENIUM_WPF
             }
         }
 
+
         /// <summary>
         /// Получает все дочерние окна указанного процесса
         /// </summary>
@@ -177,7 +179,7 @@ namespace SELENIUM_WPF
                 var processId = (uint)process.Id;
                 var topLevelWindows = new List<IntPtr>();
 
-                // Получаем все окна верхнего уровня принадлежащие процессу
+               
                 EnumWindows((hWnd, lParam) =>
                 {
                     try
@@ -190,20 +192,20 @@ namespace SELENIUM_WPF
                     }
                     catch
                     {
-                        // Игнорируем ошибки для отдельных окон
+                        
                     }
                     return true;
                 }, IntPtr.Zero);
 
-                // Для каждого окна верхнего уровня получаем его дочерние окна
+                
                 foreach (var parentWindow in topLevelWindows)
                 {
                     try
                     {
-                        // Добавляем само родительское окно
+                       
                         ProcessWindow(parentWindow, windows);
 
-                        // Добавляем дочерние окна
+                       
                         EnumChildWindows(parentWindow, (hWnd, lParam) =>
                         {
                             try
@@ -215,14 +217,14 @@ namespace SELENIUM_WPF
                             }
                             catch
                             {
-                                // Игнорируем ошибки для отдельных дочерних окон
+                               
                             }
                             return true;
                         }, IntPtr.Zero);
                     }
                     catch
                     {
-                        // Игнорируем ошибки для отдельных родительских окон
+                        
                         continue;
                     }
                 }
@@ -239,6 +241,7 @@ namespace SELENIUM_WPF
             }
         }
 
+
         /// <summary>
         /// Обрабатывает одно окно и добавляет его в список если подходит
         /// </summary>
@@ -248,7 +251,7 @@ namespace SELENIUM_WPF
             {
                 var windowTitle = GetWindowTitle(hWnd);
 
-                // Пропускаем окна без заголовка или с системными заголовками
+               
                 if (string.IsNullOrWhiteSpace(windowTitle) ||
                     windowTitle.Length < 2 ||
                     windowTitle.StartsWith("Default IME") ||
@@ -257,7 +260,7 @@ namespace SELENIUM_WPF
                     return;
                 }
 
-                // Создаем AutomationElement с обработкой ошибок
+               
                 AutomationElement element = null;
                 System.Windows.Rect bounds = System.Windows.Rect.Empty;
 
@@ -267,7 +270,7 @@ namespace SELENIUM_WPF
                     if (element != null)
                     {
                         bounds = element.Current.BoundingRectangle;
-                        // Проверяем валидность элемента
+                        
                         var _ = element.Current.Name;
                     }
                     else
@@ -295,9 +298,10 @@ namespace SELENIUM_WPF
             }
             catch
             {
-                // Игнорируем ошибки обработки отдельных окон
+               
             }
         }
+
 
         /// <summary>
         /// Активирует окно (выводит на передний план)
@@ -306,7 +310,7 @@ namespace SELENIUM_WPF
         {
             try
             {
-                // Если окно свернуто, восстанавливаем его
+                // Если окно свернуто
                 if (IsIconic(hWnd))
                 {
                     if (!ShowWindow(hWnd, SW_RESTORE))
@@ -318,7 +322,7 @@ namespace SELENIUM_WPF
                         return false;
                 }
 
-                // Выводим на передний план
+              
                 return SetForegroundWindow(hWnd);
             }
             catch
@@ -326,6 +330,7 @@ namespace SELENIUM_WPF
                 return false;
             }
         }
+
 
         /// <summary>
         /// Получает заголовок окна
@@ -347,6 +352,7 @@ namespace SELENIUM_WPF
             }
         }
 
+
         /// <summary>
         /// Приблизительное время создания окна
         /// </summary>
@@ -361,6 +367,7 @@ namespace SELENIUM_WPF
                 return DateTime.Now;
             }
         }
+
 
         /// <summary>
         /// Сканирует UI элементы окна с помощью UI_Scanner
@@ -378,7 +385,7 @@ namespace SELENIUM_WPF
 
             try
             {
-                // Вызываем UI_Scanner для получения элементов
+                
                 var records = UI_Scanner.SnapshotControls(windowElement);
 
                 if (records == null)
@@ -399,7 +406,7 @@ namespace SELENIUM_WPF
                     return records;
                 }
 
-                // Оцениваем доступность элементов
+               
                 try
                 {
                     UI_Scanner.EvaluateAvailability(windowElement, records);
@@ -432,7 +439,10 @@ namespace SELENIUM_WPF
             }
         }
 
+
+
         #region Методы отображения сообщений
+
 
         private static void ShowError(string message, string title)
         {
@@ -444,6 +454,7 @@ namespace SELENIUM_WPF
             );
         }
 
+
         private static void ShowWarning(string message, string title)
         {
             System.Windows.MessageBox.Show(
@@ -453,6 +464,7 @@ namespace SELENIUM_WPF
                 icon: MessageBoxImage.Warning
             );
         }
+
 
         private static void ShowInfo(string message, string title)
         {
